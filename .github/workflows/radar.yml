@@ -1,0 +1,77 @@
+name: Radar
+
+on:
+  schedule:
+    # A cada 15 minutos, das 08h às 22h45 (America/Sao_Paulo, UTC-3).
+    # Minutos deslocados do início da hora reduzem atrasos na fila do GitHub.
+    - cron: "3,18,33,48 11-23,0,1 * * *"
+  workflow_dispatch:
+    inputs:
+      international:
+        description: Vagas internacionais nesta execução
+        type: choice
+        options: [padrão, exibir, ocultar]
+        default: padrão
+
+permissions:
+  contents: read
+  actions: write # mantém o agendamento ativo (ver etapa "Keepalive")
+
+concurrency:
+  group: radar
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RADAR_STATE_PATH: .state/state.json
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --omit=dev --no-audit --no-fund
+
+      - name: Restaurar estado
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .state
+          key: radar-state-${{ github.run_id }}
+          restore-keys: radar-state-
+
+      - name: Executar radar
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
+          INTERNATIONAL: ${{ inputs.international }}
+        run: |
+          case "$INTERNATIONAL" in
+            exibir)  node src/main.mjs --international ;;
+            ocultar) node src/main.mjs --no-international ;;
+            *)       node src/main.mjs ;;
+          esac
+
+      - name: Salvar estado
+        if: always() && hashFiles('.state/state.json') != ''
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .state
+          key: radar-state-${{ github.run_id }}
+
+      # O GitHub desativa agendamentos de repositórios públicos após 60 dias sem
+      # commits. Reativar o workflow pela API reinicia essa contagem.
+      - name: Keepalive
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/${{ github.repository }}/actions/workflows/radar.yml/enable"

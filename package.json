@@ -1,0 +1,29 @@
+{
+  "name": "radar-vagas",
+  "version": "2.0.0",
+  "description": "Monitor de vagas remotas de nível júnior e estágio em tecnologia, com notificações no Telegram.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "author": "Lorenzo Jorge (https://github.com/llorenzojorge)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/llorenzojorge/radar-vagas.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "radar-vagas": "src/main.mjs"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/main.mjs",
+    "preview": "node --env-file-if-exists=.env src/main.mjs --dry-run --verbose",
+    "test": "node --test",
+    "check": "node --check src/main.mjs && node --test"
+  },
+  "dependencies": {
+    "imapflow": "^1.7.8",
+    "mailparser": "^3.14.2"
+  }
+}
