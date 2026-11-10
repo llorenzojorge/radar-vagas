@@ -32,7 +32,7 @@ export default {
   ],
 
   /** Aceita vagas sem senioridade explícita no título. */
-  includeWithoutLevel: false,
+  includeWithoutLevel: true,
 
   /** Termos que identificam uma vaga de tecnologia/desenvolvimento. */
   roles: [

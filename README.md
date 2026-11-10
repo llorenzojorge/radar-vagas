@@ -101,7 +101,7 @@ Os filtros e as fontes ficam em [`radar.config.mjs`](radar.config.mjs). Principa
 | `maxAgeDays` | `7` | Idade máxima da vaga, em dias |
 | `maxJobsPerRun` | `25` | Limite de vagas por notificação |
 | `levels` / `excludedLevels` | — | Senioridades aceitas e rejeitadas |
-| `includeWithoutLevel` | `false` | Aceita vagas sem senioridade no título |
+| `includeWithoutLevel` | `true` | Aceita vagas sem senioridade no título |
 | `stack` | `[]` | Exige ao menos uma tecnologia (ex.: `["react", "node*"]`) |
 | `sources.*.enabled` | `true` | Habilita ou desabilita cada fonte |
 
